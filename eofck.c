@@ -1,45 +1,57 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <err.h>
 
-void syscall_error(int ret, char *syscall_name, char *proc_name) {
-    if(ret == -1) {
-        fprintf(stderr, "%s: ", proc_name);
-        perror(syscall_name);
-        exit(1);
+int check_file(char *path) {
+    int fd = open(path, O_RDONLY);
+    if(fd == -1) {
+        warn("can't open %s", path);
+        return EXIT_FAILURE;
     }
+
+    struct stat stat_info;
+    if(fstat(fd, &stat_info) == -1) {
+        warn("can't get the size of %s", path);
+        return EXIT_FAILURE;
+    }
+
+    if(stat_info.st_size == 0) {
+        return 0;
+    }
+
+    if(lseek(fd, -1, SEEK_END) == -1) {
+        warn("can't move at the end of %s", path);
+        return EXIT_FAILURE;
+    }
+
+    char c;
+    if(read(fd, &c, 1) == -1) {
+        warn("can't read %s", path);
+        return EXIT_FAILURE;
+    }
+
+    if(c != '\n') {
+        warnx("no line feed at the end of %s", path);
+        return EXIT_FAILURE;
+    }
+
+    return EXIT_SUCCESS;
 }
 
 int main(int argc, char *argv[]) {
-    int ret;
-
-    if(argc != 2) {
-        fprintf(stderr, "%s: need a single file path argument\n", argv[0]);
-        exit(1);
+    if(argc <= 1) {
+        errx(EXIT_FAILURE, "need at least one file path");
     }
 
-    int fd = open(argv[1], O_RDONLY);
-    syscall_error(fd, "open", argv[0]);
+    int exit_status = 0;
 
-    struct stat stat_info;
-    ret = fstat(fd, &stat_info);
-    syscall_error(ret, "fstat", argv[0]);
-
-    if(stat_info.st_size == 0) {
-        exit(0);
+    for(int i = 1; i < argc; i++) {
+        if(check_file(argv[i]) == EXIT_FAILURE) {
+            exit_status = EXIT_FAILURE;
+        }
     }
 
-    ret = lseek(fd, -1, SEEK_END);
-    syscall_error(ret, "lseek", argv[0]);
-
-    char c;
-    ret = read(fd, &c, 1);
-    syscall_error(ret, "read", argv[0]);
-
-    if(c != '\n') {
-        fprintf(stderr, "%s: no line feed at the end of %s\n", argv[0], argv[1]);
-        exit(1);
-    }
+    return exit_status;
 }
