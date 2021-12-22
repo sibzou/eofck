@@ -5,5 +5,5 @@ considered correct if it is empty.
 
 ```bash
 $ gcc eofck.c -o eofck
-$ ./eofck /your/file
+$ ./eofck /your/file /another/file...
 ```
