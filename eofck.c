@@ -2,9 +2,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <locale.h>
 #include <err.h>
 
 int check_file(char *path) {
+    setlocale(LC_ALL, "");
+
     int fd = open(path, O_RDONLY);
     if(fd == -1) {
         warn("can't open %s", path);
