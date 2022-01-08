@@ -19,7 +19,7 @@ int check_file(char *path) {
     }
 
     if(stat_info.st_size == 0) {
-        return 0;
+        return EXIT_SUCCESS;
     }
 
     if(lseek(fd, -1, SEEK_END) == -1) {
@@ -48,7 +48,7 @@ int main(int argc, char *argv[]) {
         errx(EXIT_FAILURE, "need at least one file path");
     }
 
-    int exit_status = 0;
+    int exit_status = EXIT_SUCCESS;
 
     for(int i = 1; i < argc; i++) {
         if(check_file(argv[i]) == EXIT_FAILURE) {
