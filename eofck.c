@@ -6,8 +6,6 @@
 #include <err.h>
 
 int check_file(char *path) {
-    setlocale(LC_ALL, "");
-
     int fd = open(path, O_RDONLY);
     if(fd == -1) {
         warn("can't open %s", path);
@@ -44,6 +42,8 @@ int check_file(char *path) {
 }
 
 int main(int argc, char *argv[]) {
+    setlocale(LC_ALL, "");
+
     if(argc <= 1) {
         errx(EXIT_FAILURE, "need at least one file path");
     }
